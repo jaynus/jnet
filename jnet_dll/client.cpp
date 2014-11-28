@@ -38,14 +38,18 @@ namespace jnet {
 		if (msg.getProcedureNameAsString() == "getRawServerSettings") {
 			ret = _serverSettings;
 		} else if (msg.getProcedureNameAsString() == "getCurrentServer") {
-			ret = _server->id;
+			if(_server) {
+				ret = _server->id;
+			} else {
+				ret = std::string("");
+			}
 		} else if (msg.getProcedureNameAsString() == "getServerConfig") {
 			
 			if (msg.getParameterCount() < 1)
-				return "";
+				return std::string("");
 
 			if (msg.getParameterAsString(0).size() < 1)
-				return "";
+				return std::string("");
 			
 			std::string requestedConfig = msg.getParameterAsString(0);
 			

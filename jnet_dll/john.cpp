@@ -255,6 +255,10 @@ namespace jnet {
 
 				memcpy(output, ret.c_str(), ret.size());
 				output[ret.size() + 1] = 0x00;
+			} else {
+				std::string ret = "NOCONN";
+				memcpy(output, ret.c_str(), ret.size());
+				output[ret.size() + 1] = 0x00;
 			}
 		}
 	}
