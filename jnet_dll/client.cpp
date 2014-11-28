@@ -11,7 +11,8 @@
 
 namespace jnet {
 	client::client(connection_p server) : 
-		_server(server)
+		_server(server),
+		_serverSettingsReader("")
 	{
 		// On construction, send an initial client ready message to the server
 		text_message_p msg_ready(text_message::formatNewMessage("JNET client_ready", const_cast<char *>(g_ProfileName.c_str())));

@@ -2,9 +2,10 @@ cmake_minimum_required (VERSION 2.6)
 project (jnet)
 
 if (NOT CMAKE_BUILD_TYPE AND CMAKE_COMPILER_IS_GNUCXX)
-		message(STATUS "No build type selected, default to Debug")
-		set(CMAKE_BUILD_TYPE "Debug")
-	endif()
+	message(STATUS "No build type selected, default to Debug")
+	set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 
 set(JNET_SOURCES _CONSTANTS.hpp CallExt_DllMain.cpp xplatform.hpp i_engine.hpp 
 				 connection.hpp john.hpp john.cpp hooker.hpp hooker.cpp logging.hpp 
@@ -18,6 +19,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	set(CMAKE_SHARED_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 else()
+
+	set(CMAKE_CXX_FLAGS_DEBUG_INIT "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+	set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
+	
 	include_directories ("E:/dev/Detours3.0/src")
 	link_directories("E:/dev/Detours3.0/lib.X86")
 	set(LINUX_SOURCES )
