@@ -103,7 +103,6 @@ namespace jnet {
 			LOG(DEBUG) << "return" << ret;
 			return ret;
 		}
-
 		return ret;
 	}
 

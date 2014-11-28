@@ -7,6 +7,8 @@
 
 #include "text_message.hpp"
 
+#include <fstream>
+
 namespace jnet {
 	client::client(connection_p server) : 
 		_server(server)
@@ -30,11 +32,27 @@ namespace jnet {
 		text_message msg(const_cast<char *>(message.c_str()), message.size());
 
 		if (msg.getProcedureNameAsString().size() < 1)
-			return 0;
+			return "";
 
-		if (msg.getProcedureNameAsString() == "getServerSettings") {
+		if (msg.getProcedureNameAsString() == "getRawServerSettings") {
 			ret = _serverSettings;
+		} else if (msg.getProcedureNameAsString() == "getCurrentServer") {
+			ret = _server->id;
+		} else if (msg.getProcedureNameAsString() == "getServerConfig") {
+			
+			if (msg.getParameterCount() < 1)
+				return "";
+
+			if (msg.getParameterAsString(0).size() < 1)
+				return "";
+			
+			std::string requestedConfig = msg.getParameterAsString(0);
+			
+			ret = _serverSettingsReader.Get("", requestedConfig, "");
+
+			return ret;
 		}
+
 
 		return ret;
 	}
@@ -47,6 +65,18 @@ namespace jnet {
 		if (msg.getProcedureNameAsString() == "server_settings") {
 			LOG(INFO) << "Received server settings";
 			_serverSettings = msg.getParameterAsString(0);
+			//_serverSettingsReader = ini_reader(_serverSettings);
+			// We need to write to a temp file, and then pass it to ini_reader
+			std::ofstream tempFile(".jnet.lastserver.cfg");
+			
+			tempFile << _serverSettings;
+			tempFile.flush();
+			tempFile.close();
+
+			_serverSettingsReader = ini_reader(".jnet.lastserver.cfg");
+			if (_serverSettingsReader.ParseError() < 0) {
+				LOG(ERROR) << "Error parsing provided server configuration {'" << _server->id << "', '.jnet.lastserver.cfg' }";
+			}
 		}
 
 		return 0;

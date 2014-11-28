@@ -2,6 +2,7 @@
 
 #include "i_engine.hpp"
 #include "connection.hpp"
+#include "ini_reader.hpp"
 
 namespace jnet {
 	class client :
@@ -19,6 +20,8 @@ namespace jnet {
 			int recv(connection_p, message_p);
 	protected:
 		connection_p	_server;
+
 		std::string		_serverSettings;
+		ini_reader		_serverSettingsReader;
 	};
 };
