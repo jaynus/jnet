@@ -46,11 +46,12 @@ void release() {
 			case DLL_PROCESS_ATTACH:;
 				load();
 				break;
-			case DLL_THREAD_ATTACH:
-			case DLL_THREAD_DETACH:
 			case DLL_PROCESS_DETACH:
 				destroy();
 				break;
+			case DLL_THREAD_ATTACH:
+			case DLL_THREAD_DETACH:
+
 			default:
 				break;
 		}

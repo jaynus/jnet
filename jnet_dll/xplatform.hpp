@@ -1,10 +1,32 @@
 #pragma once
 
+#include <string>
+
+inline std::string get_quoted(std::string & text) {
+	std::string::size_type    start_position = 0;
+	std::string::size_type    end_position = 0;
+	std::string               found_text;
+
+	start_position = text.find("\"");
+	if (start_position != std::string::npos)
+	{
+		++start_position; // start after the double quotes.
+						  // look for end position;
+		end_position = text.find("\"");
+		if (end_position != std::string::npos)
+		{
+			found_text = text.substr(start_position, end_position - start_position);
+		}
+	}
+	return found_text;
+}
+
+
 #if	defined(_MSC_VER)
 
 #include <WinSock2.h>
 #include <ws2tcpip.h>
-#include <string>
+
 #include <io.h>
 
 inline std::string get_path() {
@@ -29,7 +51,6 @@ inline std::string get_cmdline() {
 #include <cstdio>
 #include <sys/types.h>
 #include <unistd.h>
-#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
