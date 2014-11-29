@@ -20,9 +20,11 @@ namespace jnet {
 	void server::update() {
 		timeout_clients();
 	}
-
 	void server::timeout_clients() {
 		std::vector<std::string> to_delete;
+		
+		std::lock_guard<std::mutex> lock(_clientsMutex);
+
 		for (auto conn_ref : _clients) {
 			std::chrono::milliseconds total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - conn_ref.second->last_packet_time);
 			float seconds = total_ms.count() / 1000.0f;
@@ -37,10 +39,15 @@ namespace jnet {
 			_clients.erase(del);
 		}
 	}
-
 	void server::reset() {
+		std::lock_guard<std::mutex> lock(_clientsMutex);
 		_clients.clear();
 	}
+
+	void server::send_message(message_p) {
+	
+	}
+
 	int server::recv(connection_p conn, message_p message) {
 		//Check for headers, otherwise its a binary packet
 		if (message->length > 4) {
@@ -75,17 +82,19 @@ namespace jnet {
 			} else {			// GENERIC HELLO packets get handled seperate.
 				h_sendto(message->socket, msg_welcome, 13, 0, message->from, message->fromlen);
 
-				if (_clients.find(conn->id) == _clients.end()) {
-					LOG(DEBUG) << "New JNET Client Peer - {" << message->src->id << "}";
-					_clients[conn->id] = conn;
-					handle_new_client(conn);
+				{
+					std::lock_guard<std::mutex> lock(_clientsMutex);
+					if (_clients.find(conn->id) == _clients.end()) {
+						LOG(DEBUG) << "New JNET Client Peer - {" << message->src->id << "}";
+						_clients[conn->id] = conn;
+						handle_new_client(conn);
+					}
 				}
 			}
 		}
 
 		return -1;
 	}
-
 	std::string server::rv_command(std::string &cmd) {
 		std::string ret = "";
 		
@@ -109,7 +118,6 @@ namespace jnet {
 	void server::handle_new_client(connection_p conn) {
 		// Hardcode handling and sending JVON data here
 	}
-
 	std::string server::compile_settings_message() {
 		std::stringstream str;
 
@@ -127,7 +135,6 @@ namespace jnet {
 
 		return str.str();
 	}
-
 	void server::load_configuration() {
 		// Since we are a server process, we need to determine the config file location. Either it will be command-line provided, or the default arma3 path.
 		// Extract the config name
