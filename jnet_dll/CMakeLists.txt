@@ -10,7 +10,7 @@ endif()
 set(JNET_SOURCES _CONSTANTS.hpp CallExt_DllMain.cpp xplatform.hpp i_engine.hpp 
 				 connection.hpp john.hpp john.cpp hooker.hpp hooker.cpp logging.hpp 
 				 client.hpp client.cpp server.hpp server.cpp ini.h ini.cpp text_message.hpp 
-				 text_message.cpp ini_reader.hpp ini_reader.cpp)
+				 text_message.cpp ini_reader.hpp ini_reader.cpp base_engine.cpp base_engine.hpp easyloggingc++.hpp)
 				 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS "-std=c++11 -march=i686 -m32 -O2 -s -fPIC -fpermissive")

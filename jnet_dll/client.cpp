@@ -26,7 +26,10 @@ namespace jnet {
 	client::~client() {}
 
 	void client::reset() {}
-	void client::update() {}
+	void client::update() {
+	
+		_worker_send_messages();
+	}
 
 	std::string client::rv_command(const std::string &message) {
 		std::string ret = "";
@@ -86,4 +89,36 @@ namespace jnet {
 
 		return 0;
 	}
+
+	void client::queue_message(const std::string & dst, message_p msg) {
+		std::lock_guard<std::mutex> lock(_outboundMessageQueueMutex);
+
+		_outboundMessageQueue.push_back(std::make_pair(dst, msg));
+	}
+	void client::_worker_send_messages() {
+		if (!_server || _outboundMessageQueue.size() < 1)
+			return;
+
+		{
+			std::lock_guard<std::mutex> lock_queue(_outboundMessageQueueMutex);
+
+			for (auto msg_pair : _outboundMessageQueue) {
+				if (msg_pair.first == "") {
+					LOG(DEBUG) << "Sending message to server";
+					sendto(_server->socket,
+						msg_pair.second->buffer, msg_pair.second->length, 0,
+						reinterpret_cast<struct sockaddr *>(&_server->addr), _server->addr_len);
+				}
+				else {
+					LOG(DEBUG) << "Sending targeted message to [" << msg_pair.first << "]";
+					sendto(_server->socket,
+						msg_pair.second->buffer, msg_pair.second->length, 0,
+						reinterpret_cast<struct sockaddr *>(&msg_pair.second->addr), msg_pair.second->addr_len);
+				}
+			}
+
+			_outboundMessageQueue.clear();
+		}
+	}
+
 };

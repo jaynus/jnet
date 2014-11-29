@@ -19,6 +19,7 @@ namespace jnet {
 
 	void server::update() {
 		timeout_clients();
+		_worker_send_messages();
 	}
 	void server::timeout_clients() {
 		std::vector<std::string> to_delete;
@@ -113,7 +114,7 @@ namespace jnet {
 
 				return 0;
 			} else {			// GENERIC HELLO packets get handled seperate.
-				h_sendto(message->socket, msg_welcome, 13, 0, message->from, message->fromlen);
+				h_sendto(message->socket, msg_welcome, 13, 0, message->addr, message->addr_len);
 
 				{
 					std::lock_guard<std::mutex> lock(_clientsMutex);
@@ -144,7 +145,10 @@ namespace jnet {
 			}
 			LOG(DEBUG) << "return" << ret;
 			return ret;
+		} else if(msg.getProcedureNameAsString() == "broadcastSqf") {
+			ret = "NOT_IMPLEMENTED";
 		}
+
 		return ret;
 	}
 

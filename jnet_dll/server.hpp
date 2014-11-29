@@ -1,6 +1,8 @@
 #pragma once
 
 #include "i_engine.hpp"
+#include "base_engine.hpp"
+
 #include "connection.hpp"
 
 #include <map>
@@ -11,7 +13,8 @@
 
 namespace jnet {
 	class server :
-		public i_engine 
+		public i_engine,
+		public base_engine
 	{
 	public:
 		server();
