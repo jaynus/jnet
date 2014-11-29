@@ -207,7 +207,13 @@ namespace jnet {
 		if (cmd.size() < 1)
 			return;
 		
-		if (cmd == "init:base") {
+		if (cmd == "disable") {
+			_state.status = e_status_t::DISABLED;
+
+			_currentEngine = nullptr;
+			_currentServerConnection = nullptr;
+
+		} else if (cmd == "init:base") {
 			LOG(DEBUG) << "Got a command [" << cmd << "]";
 			reset();
 			
