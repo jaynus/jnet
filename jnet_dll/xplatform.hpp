@@ -71,6 +71,8 @@ typedef unsigned long DWORD;
 #define FAR
 #define WSAAPI
 #define PATH_MAX 1024
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR   -1
 
 inline std::string get_path() {
 	char arg1[PATH_MAX];

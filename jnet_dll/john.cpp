@@ -32,7 +32,7 @@ namespace jnet {
 			}
 
 			if (state().status == e_status_t::DISABLED) {
-				sleep(500);
+				sleep(1000);
 				continue;
 			}
 
@@ -43,7 +43,7 @@ namespace jnet {
 		
 			_lastState = state();
 
-			sleep(500);
+			sleep(100);
 		}
 	}
 

@@ -22,7 +22,7 @@ namespace jnet {
 	}
 	void server::timeout_clients() {
 		std::vector<std::string> to_delete;
-		
+
 		std::lock_guard<std::mutex> lock(_clientsMutex);
 
 		for (auto conn_ref : _clients) {
@@ -44,8 +44,41 @@ namespace jnet {
 		_clients.clear();
 	}
 
-	void server::send_message(message_p) {
-	
+	void server::queue_message(const std::string & dst, message_p msg) {
+		std::lock_guard<std::mutex> lock(_outboundMessageQueueMutex);
+
+		_outboundMessageQueue.push_back(std::make_pair(dst, msg) );
+	}
+	void server::_worker_send_messages() {
+		if (_clients.size() < 1 || _outboundMessageQueue.size() < 1)
+			return;
+
+		{
+			std::lock_guard<std::mutex> lock(_outboundMessageQueueMutex);
+			std::lock_guard<std::mutex> lock(_clientsMutex);
+
+			for (auto msg_pair : _outboundMessageQueue) {
+				if (msg_pair.first == "") {
+					LOG(DEBUG) << "Broadcasting message";
+					for (auto client : _clients) {
+						sendto(client.second->socket,
+							msg_pair.second->buffer, msg_pair.second->length, 0,
+							reinterpret_cast<struct sockaddr *>(&client.second->addr), client.second->addr_len);
+					}
+				} else {
+					if (_clients.find(msg_pair.first) == _clients.end()) {
+						continue;
+					}
+
+					LOG(DEBUG) << "Sending targeted message to [" << msg_pair.first << "]";
+					sendto(_clients[msg_pair.first]->socket,
+						msg_pair.second->buffer, msg_pair.second->length, 0,
+						reinterpret_cast<struct sockaddr *>(&_clients[msg_pair.first]->addr), _clients[msg_pair.first]->addr_len);
+				}
+			}
+
+			_outboundMessageQueue.clear();
+		}
 	}
 
 	int server::recv(connection_p conn, message_p message) {
@@ -95,7 +128,7 @@ namespace jnet {
 
 		return -1;
 	}
-	std::string server::rv_command(std::string &cmd) {
+	std::string server::rv_command(const std::string &cmd) {
 		std::string ret = "";
 		
 		LOG(DEBUG) << "SRV ["<< cmd << "]";
