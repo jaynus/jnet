@@ -130,39 +130,42 @@ namespace jnet {
 
 	void server::load_configuration() {
 		// Since we are a server process, we need to determine the config file location. Either it will be command-line provided, or the default arma3 path.
+		// Extract the config name
+		std::string cfg_name = "";
 
 		std::string cmd_line = get_cmdline();
 		LOG(DEBUG) << "Server Parameters: " << cmd_line;
-		
+
 		if (cmd_line.find("-config") == std::string::npos) {
-			LOG(INFO) << "* No server configuration detected; falling back on defaults";
-			return;
-		}
-		// Extract the config name
-		std::string cfg_name;
-		if (cmd_line.find_first_of("-config") != std::string::npos) {
-			cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
-			cmd_line.resize(cmd_line.find_first_of(" "));
-			
-		} else if(cmd_line.find_first_of("-cfg") != std::string::npos) {
-			cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
-			cmd_line.resize(cmd_line.find_first_of(" "));
+			LOG(DEBUG) << "* No server configuration detected; falling back on defaults";
+
 		} else {
-			cfg_name = "";
-		}
-		LOG(DEBUG) << "Determined config name: '" << cfg_name << "'";
+			if (cmd_line.find_first_of("-config") != std::string::npos) {
+				cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
+				cfg_name.resize(cfg_name.find_first_of(" "));
 
-		if(access(cfg_name.c_str(), 0) == -1) {
-			LOG(ERROR) << "Config file doesn't exist. Reverting to defaults";
-		} else {
-
-			LOG(INFO) << "Parsing server config {" 	<< cfg_name << "}";
-			_config = new ini_reader(cfg_name);
-
-			if (config().ParseError() < 0) {
-				LOG(ERROR) << "Can't load '" << cfg_name << "'";
-				return;
+			} else if (cmd_line.find_first_of("-cfg") != std::string::npos) {
+				cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
+				cfg_name.resize(cfg_name.find_first_of(" "));
+			} else {
+				cfg_name = "";
 			}
+			LOG(DEBUG) << "Determined config name: '" << cfg_name << "'";
+
+			std::ifstream file(cfg_name);
+			if (!file) {
+				LOG(DEBUG) << "Couldn't open server configuration file.";
+			} else {
+				// Close our test
+				file.close();
+				LOG(INFO) << "Loading server configuration {" << cfg_name << "}";
+			}
+		}
+		_config = new ini_reader(cfg_name);
+
+		if (config().ParseError() < 0) {
+			LOG(ERROR) << "Can't load server configuration '" << cfg_name << "'";
+			return;
 		}
 #ifdef _DEAD	// This was testing with our JVON configurations. We should implement fetching these from command line.
 		LOG(INFO) << "Configuration File Loaded";
