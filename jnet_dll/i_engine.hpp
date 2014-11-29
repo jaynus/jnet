@@ -38,9 +38,9 @@ namespace jnet {
 		virtual void update() = 0;
 		virtual void reset() = 0;
 
-		virtual std::string rv_command(std::string &) = 0;
+		virtual std::string rv_command(const std::string &) = 0;
 
-		virtual int recv(connection_p, message_p) = 0;
+		virtual int recv(const connection_p, const message_p) = 0;
 
 	};
 }

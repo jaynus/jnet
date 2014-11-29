@@ -54,8 +54,8 @@ namespace jnet {
 			return;
 
 		{
-			std::lock_guard<std::mutex> lock(_outboundMessageQueueMutex);
-			std::lock_guard<std::mutex> lock(_clientsMutex);
+			std::lock_guard<std::mutex> lock_queue(_outboundMessageQueueMutex);
+			std::lock_guard<std::mutex> lock_clients(_clientsMutex);
 
 			for (auto msg_pair : _outboundMessageQueue) {
 				if (msg_pair.first == "") {
@@ -81,7 +81,7 @@ namespace jnet {
 		}
 	}
 
-	int server::recv(connection_p conn, message_p message) {
+	int server::recv(const connection_p conn, const message_p message) {
 		//Check for headers, otherwise its a binary packet
 		if (message->length > 4) {
 			if (memcmp(msg_hello+5, message->buffer, 5) != 0) {

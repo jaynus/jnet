@@ -28,7 +28,7 @@ namespace jnet {
 	void client::reset() {}
 	void client::update() {}
 
-	std::string client::rv_command(std::string &message) {
+	std::string client::rv_command(const std::string &message) {
 		std::string ret = "";
 		text_message msg(const_cast<char *>(message.c_str()), message.size());
 
@@ -61,7 +61,7 @@ namespace jnet {
 
 		return ret;
 	}
-	int client::recv(connection_p conn, message_p message) {
+	int client::recv(const connection_p conn, const message_p message) {
 		text_message msg(const_cast<char *>(message->buffer), message->length);
 
 		if (msg.getProcedureNameAsString().size() < 1)

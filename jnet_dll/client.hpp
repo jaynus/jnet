@@ -15,9 +15,9 @@ namespace jnet {
 			void update();
 			void reset();
 
-			std::string rv_command(std::string &);
+			std::string rv_command(const std::string &);
 
-			int recv(connection_p, message_p);
+			int recv(const connection_p, const message_p);
 	protected:
 		connection_p	_server;
 
