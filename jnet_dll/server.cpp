@@ -19,10 +19,13 @@ namespace jnet {
 
 	void server::update() {
 		timeout_clients();
+		_worker_send_messages();
 	}
-
 	void server::timeout_clients() {
 		std::vector<std::string> to_delete;
+
+		std::lock_guard<std::mutex> lock(_clientsMutex);
+
 		for (auto conn_ref : _clients) {
 			std::chrono::milliseconds total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - conn_ref.second->last_packet_time);
 			float seconds = total_ms.count() / 1000.0f;
@@ -37,11 +40,49 @@ namespace jnet {
 			_clients.erase(del);
 		}
 	}
-
 	void server::reset() {
+		std::lock_guard<std::mutex> lock(_clientsMutex);
 		_clients.clear();
 	}
-	int server::recv(connection_p conn, message_p message) {
+
+	void server::queue_message(const std::string & dst, message_p msg) {
+		std::lock_guard<std::mutex> lock(_outboundMessageQueueMutex);
+
+		_outboundMessageQueue.push_back(std::make_pair(dst, msg) );
+	}
+	void server::_worker_send_messages() {
+		if (_clients.size() < 1 || _outboundMessageQueue.size() < 1)
+			return;
+
+		{
+			std::lock_guard<std::mutex> lock_queue(_outboundMessageQueueMutex);
+			std::lock_guard<std::mutex> lock_clients(_clientsMutex);
+
+			for (auto msg_pair : _outboundMessageQueue) {
+				if (msg_pair.first == "") {
+					LOG(DEBUG) << "Broadcasting message";
+					for (auto client : _clients) {
+						sendto(client.second->socket,
+							msg_pair.second->buffer, msg_pair.second->length, 0,
+							reinterpret_cast<struct sockaddr *>(&client.second->addr), client.second->addr_len);
+					}
+				} else {
+					if (_clients.find(msg_pair.first) == _clients.end()) {
+						continue;
+					}
+
+					LOG(DEBUG) << "Sending targeted message to [" << msg_pair.first << "]";
+					sendto(_clients[msg_pair.first]->socket,
+						msg_pair.second->buffer, msg_pair.second->length, 0,
+						reinterpret_cast<struct sockaddr *>(&_clients[msg_pair.first]->addr), _clients[msg_pair.first]->addr_len);
+				}
+			}
+
+			_outboundMessageQueue.clear();
+		}
+	}
+
+	int server::recv(const connection_p conn, const message_p message) {
 		//Check for headers, otherwise its a binary packet
 		if (message->length > 4) {
 			if (memcmp(msg_hello+5, message->buffer, 5) != 0) {
@@ -73,20 +114,22 @@ namespace jnet {
 
 				return 0;
 			} else {			// GENERIC HELLO packets get handled seperate.
-				h_sendto(message->socket, msg_welcome, 13, 0, message->from, message->fromlen);
+				h_sendto(message->socket, msg_welcome, 13, 0, message->addr, message->addr_len);
 
-				if (_clients.find(conn->id) == _clients.end()) {
-					LOG(DEBUG) << "New JNET Client Peer - {" << message->src->id << "}";
-					_clients[conn->id] = conn;
-					handle_new_client(conn);
+				{
+					std::lock_guard<std::mutex> lock(_clientsMutex);
+					if (_clients.find(conn->id) == _clients.end()) {
+						LOG(DEBUG) << "New JNET Client Peer - {" << message->src->id << "}";
+						_clients[conn->id] = conn;
+						handle_new_client(conn);
+					}
 				}
 			}
 		}
 
 		return -1;
 	}
-
-	std::string server::rv_command(std::string &cmd) {
+	std::string server::rv_command(const std::string &cmd) {
 		std::string ret = "";
 		
 		LOG(DEBUG) << "SRV ["<< cmd << "]";
@@ -102,6 +145,8 @@ namespace jnet {
 			}
 			LOG(DEBUG) << "return" << ret;
 			return ret;
+		} else if(msg.getProcedureNameAsString() == "broadcastSqf") {
+			ret = "NOT_IMPLEMENTED";
 		}
 
 		return ret;
@@ -110,7 +155,6 @@ namespace jnet {
 	void server::handle_new_client(connection_p conn) {
 		// Hardcode handling and sending JVON data here
 	}
-
 	std::string server::compile_settings_message() {
 		std::stringstream str;
 
@@ -128,42 +172,44 @@ namespace jnet {
 
 		return str.str();
 	}
-
 	void server::load_configuration() {
 		// Since we are a server process, we need to determine the config file location. Either it will be command-line provided, or the default arma3 path.
+		// Extract the config name
+		std::string cfg_name = "";
 
 		std::string cmd_line = get_cmdline();
 		LOG(DEBUG) << "Server Parameters: " << cmd_line;
-		
+
 		if (cmd_line.find("-config") == std::string::npos) {
-			LOG(INFO) << "* No server configuration detected; falling back on defaults";
-			return;
-		}
-		// Extract the config name
-		std::string cfg_name;
-		if (cmd_line.find_first_of("-config") != std::string::npos) {
-			cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
-			cmd_line.resize(cmd_line.find_first_of(" "));
-			
-		} else if(cmd_line.find_first_of("-cfg") != std::string::npos) {
-			cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
-			cmd_line.resize(cmd_line.find_first_of(" "));
+			LOG(DEBUG) << "* No server configuration detected; falling back on defaults";
+
 		} else {
-			cfg_name = "";
-		}
-		LOG(DEBUG) << "Determined config name: '" << cfg_name << "'";
+			if (cmd_line.find_first_of("-config") != std::string::npos) {
+				cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
+				cfg_name.resize(cfg_name.find_first_of(" "));
 
-		if(access(cfg_name.c_str(), 0) == -1) {
-			LOG(ERROR) << "Config file doesn't exist. Reverting to defaults";
-		} else {
-
-			LOG(INFO) << "Parsing server config {" 	<< cfg_name << "}";
-			_config = new ini_reader(cfg_name);
-
-			if (config().ParseError() < 0) {
-				LOG(ERROR) << "Can't load '" << cfg_name << "'";
-				return;
+			} else if (cmd_line.find_first_of("-cfg") != std::string::npos) {
+				cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
+				cfg_name.resize(cfg_name.find_first_of(" "));
+			} else {
+				cfg_name = "";
 			}
+			LOG(DEBUG) << "Determined config name: '" << cfg_name << "'";
+
+			std::ifstream file(cfg_name);
+			if (!file) {
+				LOG(DEBUG) << "Couldn't open server configuration file.";
+			} else {
+				// Close our test
+				file.close();
+				LOG(INFO) << "Loading server configuration {" << cfg_name << "}";
+			}
+		}
+		_config = new ini_reader(cfg_name);
+
+		if (config().ParseError() < 0) {
+			LOG(ERROR) << "Can't load server configuration '" << cfg_name << "'";
+			return;
 		}
 #ifdef _DEAD	// This was testing with our JVON configurations. We should implement fetching these from command line.
 		LOG(INFO) << "Configuration File Loaded";

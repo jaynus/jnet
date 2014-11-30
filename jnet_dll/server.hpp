@@ -1,15 +1,20 @@
 #pragma once
 
 #include "i_engine.hpp"
+#include "base_engine.hpp"
+
 #include "connection.hpp"
 
 #include <map>
+#include <mutex>
+#include <vector>
 
 #include "ini_reader.hpp"
 
 namespace jnet {
 	class server :
-		public i_engine 
+		public i_engine,
+		public base_engine
 	{
 	public:
 		server();
@@ -21,19 +26,24 @@ namespace jnet {
 
 		void reset();
 
-		std::string rv_command(std::string &);
+		std::string rv_command(const std::string &);
+		int recv(connection_p, message_p);
+
+		void queue_message(const std::string &, message_p);
+		void _worker_send_messages();
 
 		void load_configuration();
 		void handle_new_client(connection_p);
 
-		std::string compile_settings_message();
-
-		int recv(connection_p, message_p);
-
 		ini_reader & config() { return *_config;  }
-
+		std::string compile_settings_message();
 	protected:
-		std::map<std::string, connection_p> _clients;
-		ini_reader * _config;
+		std::mutex													_outboundMessageQueueMutex;
+		std::vector<std::pair<std::string, message_p>>				_outboundMessageQueue;
+
+		std::mutex													_clientsMutex;
+		std::map<std::string, connection_p>							_clients;
+
+		ini_reader *												_config;
 	};
 };

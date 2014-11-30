@@ -32,7 +32,7 @@ namespace jnet {
 			}
 
 			if (state().status == e_status_t::DISABLED) {
-				sleep(500);
+				sleep(1000);
 				continue;
 			}
 
@@ -43,7 +43,7 @@ namespace jnet {
 		
 			_lastState = state();
 
-			sleep(500);
+			sleep(100);
 		}
 	}
 
@@ -193,7 +193,11 @@ namespace jnet {
 
 	void john::rv_command(char *output, int outputSize, const char *function) {
 		std::string cmd = function;
-		
+
+		std::string default_response = "NOCMD";
+		memcpy(output, default_response.c_str(), default_response.size() + 1);
+		output[default_response.size() + 1] = 0x00;
+
 		std::string initialized_server = "server_init";
 		std::string initialized_client = "client_init";
 		std::string initialized_name = "profileName";
@@ -203,15 +207,22 @@ namespace jnet {
 		if (cmd.size() < 1)
 			return;
 		
-		if (cmd == "init:base") {
+		if (cmd == "disable") {
+			_state.status = e_status_t::DISABLED;
+
+			_currentEngine = nullptr;
+			_currentServerConnection = nullptr;
+
+		} else if (cmd == "init:base") {
 			LOG(DEBUG) << "Got a command [" << cmd << "]";
 			reset();
 			
 			// Determine starting conditions to tell if server or client
 			std::string process_name = get_path();
+			std::string cmd_line = get_cmdline();
 			LOG(DEBUG) << "Current process: " << process_name;			
 
-			if (process_name.find("server") != std::string::npos) {
+			if (process_name.find("server") != std::string::npos || cmd_line.find("-config") != std::string::npos) {
 				LOG(INFO) << "Detected ArmA3 Server. Running in server mode...";
 
 				_state.is_server = true;
@@ -252,7 +263,14 @@ namespace jnet {
 				std::string ret = _currentEngine->rv_command(cmd);
 				if (ret.size() > outputSize)
 					ret.resize(outputSize - 1);
+				
+				if (ret.size() > 1) {
+					memcpy(output, ret.c_str(), ret.size());
+					output[ret.size() + 1] = 0x00;
+				}
 
+			} else {
+				std::string ret = "NOCONN";
 				memcpy(output, ret.c_str(), ret.size());
 				output[ret.size() + 1] = 0x00;
 			}
