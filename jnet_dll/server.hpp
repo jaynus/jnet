@@ -27,7 +27,7 @@ namespace jnet {
 		void reset();
 
 		std::string rv_command(const std::string &);
-		int recv(connection_p, message_p);
+		int recv(const connection_p, const message_p);
 
 		void queue_message(const std::string &, message_p);
 		void _worker_send_messages();

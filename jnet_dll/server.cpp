@@ -29,8 +29,9 @@ namespace jnet {
 		for (auto conn_ref : _clients) {
 			std::chrono::milliseconds total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - conn_ref.second->last_packet_time);
 			float seconds = total_ms.count() / 1000.0f;
+#ifdef DO_TRACE_CONNECTIONS
 			LOG(DEBUG) << "[" << conn_ref.first << "] ms=" << total_ms.count() << ", seconds=" << seconds;
-
+#endif
 			if (seconds > DISCONNECT_TIMEOUT) {
 				to_delete.push_back(conn_ref.first);
 			}
@@ -162,13 +163,13 @@ namespace jnet {
 		
 		str << "[jvon_settings]";
 		str << "jvon_launcher = " << config().GetInteger("", "jvon_launcher", 0) << ";\n";
-		str << "jvon_host = " << config().Get("", "jvon_host", "") << ";\n";
-		str << "jvon_host_port = " << config().GetInteger("", "jvon_host_port", 0) << ";\n";
-		str << "jvon_server_config = " << config().Get("", "jvon_server_config", "@JVON\\jvon_server.json") << ";\n";
-		str << "jvon_password = " << config().Get("", "jvon_password", "") << ";\n";
+		str << "jvon_server_address = \"" << config().Get("", "jvon_server_address", "") << "\";\n";
+		str << "jvon_password = \"" << config().Get("", "jvon_password", "") << "\";\n";
 		str << "jvon_required = " << config().GetInteger("", "jvon_required", 0) << ";\n";
 		str << "jvon_required_timeout = " << config().GetInteger("", "jvon_required_timeout", 0) << ";\n";
 		str << "jvon_extended_config = " << config().Get("", "jvon_extended_config", "") << ";\n";
+
+		LOG(DEBUG) << "Sending: " << str.str();
 
 		return str.str();
 	}
@@ -186,11 +187,18 @@ namespace jnet {
 		} else {
 			if (cmd_line.find_first_of("-config") != std::string::npos) {
 				cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
-				cfg_name.resize(cfg_name.find_first_of(" "));
+				
+				size_t end_index = cfg_name.find_first_of(" ");
+				if (cfg_name.find_first_of(" ") == std::string::npos)
+					end_index = cfg_name.size();
+				cfg_name.resize(end_index);
 
 			} else if (cmd_line.find_first_of("-cfg") != std::string::npos) {
 				cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
-				cfg_name.resize(cfg_name.find_first_of(" "));
+				size_t end_index = cfg_name.find_first_of(" ");
+				if (cfg_name.find_first_of(" ") == std::string::npos)
+					end_index = cfg_name.size();
+				cfg_name.resize(end_index);
 			} else {
 				cfg_name = "";
 			}

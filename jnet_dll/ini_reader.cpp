@@ -83,7 +83,13 @@ namespace jnet {
 		string key = MakeKey(section, name);
 		if (reader->_values[key].size() > 0)
 			reader->_values[key] += "\n";
-		reader->_values[key] += value;
+
+		// Escape quotes and/or terminating ; at the end of it
+		std::string str_val = value;
+		str_val.erase(remove(str_val.begin(), str_val.end(), '\"'), str_val.end());
+		str_val.erase(remove(str_val.begin(), str_val.end(), ';'), str_val.end());
+
+		reader->_values[key] += str_val;
 		return 1;
 	}
 }

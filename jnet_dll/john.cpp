@@ -26,7 +26,7 @@ namespace jnet {
 	void john::run() {
 		while (!_stopping) {
 
-			LOG(DEBUG) << "tick {" << state().status << "-" << _lastState.status << "}";
+			//LOG(DEBUG) << "tick {" << state().status << "-" << _lastState.status << "}";
 			if (state().status != _lastState.status) {
 				LOG(DEBUG) << "State change detected: [" << state().status << "]";
 			}
@@ -78,9 +78,9 @@ namespace jnet {
 					if (_currentServerConnection) {
 						std::chrono::milliseconds total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - _currentServerConnection->last_packet_time);
 						float seconds = total_ms.count() / 1000.0f;
-
+#ifdef DO_TRACE_CONNECTIONS
 						LOG(DEBUG) << "Timeout check: ms=" << total_ms.count() << ", seconds=" << seconds;
-
+#endif
 						if (seconds > DISCONNECT_TIMEOUT) {
 							LOG(WARNING) << "Server connection lost. Initiating discovery...";
 							_state.status = e_status_t::DISCOVERY;
@@ -100,15 +100,18 @@ namespace jnet {
 				for (auto conn_ref : _connList) {
 					std::chrono::milliseconds total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - conn_ref.second->last_packet_time);
 					float seconds = total_ms.count() / 1000.0f;
+#ifdef DO_TRACE_CONNECTIONS
 					LOG(DEBUG) << "[" << conn_ref.first << "] ms=" << total_ms.count() << ", seconds=" << seconds;
-
+#endif
 					if (seconds > CONNECTION_TIMEOUT) {
 						to_delete.push_back(conn_ref.first);
 					}
 				}
 				if (to_delete.size() > 0) {
 					for (auto del : to_delete) {
+#ifdef DO_TRACE_CONNECTIONS
 						LOG(DEBUG) << "GC: de-tracking [" << del << "]";
+#endif
 						_connList.erase(del);
 					}
 					if(_state.status == e_status_t::CONNECTED) {
@@ -314,8 +317,9 @@ namespace jnet {
 				std::lock_guard<std::mutex> lock(_connListMutex);
 
 				if (_connList.find(cur_host) == _connList.end()) {
+#ifdef DO_TRACE_CONNECTIONS
 					LOG(DEBUG) << "Tracking new connection [" << cur_host << "]";
-
+#endif
 					_connList[cur_host] = std::shared_ptr<connection>(new connection());
 					_connList[cur_host]->id = cur_host;
 					_connList[cur_host]->socket = s;

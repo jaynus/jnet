@@ -57,6 +57,8 @@ namespace jnet {
 			std::string requestedConfig = msg.getParameterAsString(0);
 			
 			ret = _serverSettingsReader.Get("", requestedConfig, "");
+			
+			LOG(DEBUG) << "getServerConfig, returning '" << ret << "'";
 
 			return ret;
 		}
