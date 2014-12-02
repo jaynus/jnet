@@ -32,7 +32,7 @@ if(!isDedicated) then {
 	
 	// If it was server, we attempt pulling a test config
 	_res = "jnet" callExtension "getServerConfig:jvon_enabled";
-	diag_log text format["_res=%1", _res];
+	//diag_log text format["_res=%1", _res];
 	diag_log text format["JNET Initialized!"];
 };
 

@@ -1,4 +1,4 @@
-diag_log text format["JNET Initialized"];
+diag_log text format["JNET Game Initialized"];
 
 if(!isDedicated) then {
 	_res = "jnet" callExtension "init:gameStart";

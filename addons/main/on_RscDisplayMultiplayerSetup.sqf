@@ -4,6 +4,7 @@ if(!(uiNamespace getVariable ["JNET_mpSetupInit", false])) then {
 
 	uiNamespace setVariable ["JNET_checkScriptId", _scriptId];
 	uiNamespace setVariable ["JNET_mpSetupInit", true];
+	
 	["onLoad",_this,"RscDisplayMultiplayerSetup",'GUI'] call compile preprocessfilelinenumbers "A3\ui_f\scripts\initDisplay.sqf";
 };
 diag_log text "HI MP SETUP SCREEN!";
