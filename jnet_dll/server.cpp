@@ -181,6 +181,27 @@ namespace jnet {
 		std::string cmd_line = get_cmdline();
 		LOG(DEBUG) << "Server Parameters: " << cmd_line;
 
+		if (cmd_line.find_first_of("-par") != std::string::npos) {
+			std::string par_path = cmd_line.substr(cmd_line.find("-par") + 5, cmd_line.size() - (cmd_line.find("-par") + 5));
+
+			size_t end_index = par_path.find_first_of(" ");
+			if (par_path.find_first_of(" ") == std::string::npos)
+				end_index = par_path.size();
+			par_path.resize(end_index);
+
+			// We pull the par, condense the \r\n to spaces, then replace cmd_line with it
+			std::ifstream par_file(par_path);
+			if (par_file) {
+				LOG(TRACE) << "Parsing from PAR file";
+				std::string par_str((std::istreambuf_iterator<char>(par_file)),
+					std::istreambuf_iterator<char>());
+				std::replace(par_str.begin(), par_str.end(), '\r', ' ');
+				std::replace(par_str.begin(), par_str.end(), '\n', ' ');
+
+				cmd_line = par_str;
+			}
+		}
+		
 		if (cmd_line.find("-config") == std::string::npos) {
 			LOG(DEBUG) << "* No server configuration detected; falling back on defaults";
 
