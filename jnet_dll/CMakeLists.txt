@@ -25,8 +25,8 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE       "/MT /O2 /Ob2 /D NDEBUG")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /Zi /O2 /Ob1 /D NDEBUG")
 	
-	include_directories ("E:/dev/Detours3.0/src")
-	link_directories("E:/dev/Detours3.0/lib.X86")
+	include_directories ("${PROJECT_SOURCE_DIR}/../detours/")
+	link_directories("${PROJECT_SOURCE_DIR}/../detours/")
 	set(LINUX_SOURCES )
 endif()
 
