@@ -5,9 +5,29 @@
 #include <cstdlib>
 #include "ini.h"
 #include "ini_reader.hpp"
+#include <algorithm> 
+#include <functional> 
+#include <locale>
 
 using std::string;
 namespace jnet {
+	static inline std::string &ltrim(std::string &s) {
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		return s;
+	}
+
+	// trim from end
+	static inline std::string &rtrim(std::string &s) {
+		s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		return s;
+	}
+
+	// trim from both ends
+	static inline std::string &trim(std::string &s) {
+		return ltrim(rtrim(s));
+	}
+
+
 	ini_reader::ini_reader(string filename)
 	{
 		_error = ini_parse(filename.c_str(), ValueHandler, this);
@@ -73,6 +93,8 @@ namespace jnet {
 		string key = section + "." + name;
 		// Convert to lower case to make section/name lookups case-insensitive
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+		trim(key);
+
 		return key;
 	}
 
@@ -88,6 +110,8 @@ namespace jnet {
 		std::string str_val = value;
 		str_val.erase(remove(str_val.begin(), str_val.end(), '\"'), str_val.end());
 		str_val.erase(remove(str_val.begin(), str_val.end(), ';'), str_val.end());
+
+		trim(str_val);
 
 		reader->_values[key] += str_val;
 		return 1;

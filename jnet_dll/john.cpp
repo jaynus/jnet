@@ -210,14 +210,16 @@ namespace jnet {
 		if (cmd.size() < 1)
 			return;
 		
+		LOG(DEBUG) << "Got a command [" << cmd << "]";
+
 		if (cmd == "disable") {
 			_state.status = e_status_t::DISABLED;
 
 			_currentEngine = nullptr;
 			_currentServerConnection = nullptr;
-
+		} else if (cmd == "reset") {
+			reset();
 		} else if (cmd == "init:base") {
-			LOG(DEBUG) << "Got a command [" << cmd << "]";
 			reset();
 			
 			// Determine starting conditions to tell if server or client
