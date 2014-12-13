@@ -196,7 +196,7 @@ namespace jnet {
 				std::replace(par_str.begin(), par_str.end(), '\r', ' ');
 				std::replace(par_str.begin(), par_str.end(), '\n', ' ');
 
-				cmd_line = par_str;
+				cmd_line += par_str;
 			}
 		}
 		
