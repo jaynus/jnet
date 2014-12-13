@@ -273,7 +273,7 @@ namespace jnet {
 				if (ret.size() > outputSize)
 					ret.resize(outputSize - 1);
 				
-				if (ret.size() > 1) {
+				if (ret.size() > 0) {
 					memcpy(output, ret.c_str(), ret.size());
 					output[ret.size()] = 0x00;
 				}
