@@ -54,7 +54,7 @@ namespace jnet {
 			if (_state.status == e_status_t::DISCOVERY) {
 				for (auto conn_ref : _connList) {
 					if (conn_ref.second->packets_recv > INITIAL_RECV_THRESHOLD) {
-						LOG(DEBUG) << "[" << conn_ref.first << "]: r=" << conn_ref.second->packets_sent << ", r=" << conn_ref.second->packets_recv;
+						LOG(DEBUG) << "[" << conn_ref.first << "]: s=" << conn_ref.second->packets_sent << ", r=" << conn_ref.second->packets_recv;
 						if (conn_ref.second->packets_sent > INITIAL_SEND_THRESHOLD && conn_ref.second->packets_recv > INITIAL_RECV_THRESHOLD) {
 							if (conn_ref.second->has_jnet) {
 								
@@ -131,8 +131,12 @@ namespace jnet {
 		if (_state.status != e_status_t::SERVER_ENABLED) {
 			{
 				std::lock_guard<std::mutex> lock(_connListMutex);
+				LOG(WARNING) << "Warning, reset performed, Initiating discovery...";
 				_connList.clear();
+				_currentServerConnection = nullptr;
+				_currentEngine = nullptr;
 			}
+			_state.status = e_status_t::DISCOVERY;
 		}
 	}
 
@@ -197,7 +201,7 @@ namespace jnet {
 	void john::rv_command(char *output, int outputSize, const char *function) {
 		std::string cmd = function;
 
-		std::string default_response = "NOCMD";
+		std::string default_response = "";
 		memcpy(output, default_response.c_str(), default_response.size() + 1);
 		output[default_response.size() + 1] = 0x00;
 
@@ -271,13 +275,13 @@ namespace jnet {
 				
 				if (ret.size() > 1) {
 					memcpy(output, ret.c_str(), ret.size());
-					output[ret.size() + 1] = 0x00;
+					output[ret.size()] = 0x00;
 				}
 
 			} else {
 				std::string ret = "NOCONN";
 				memcpy(output, ret.c_str(), ret.size());
-				output[ret.size() + 1] = 0x00;
+				output[ret.size()] = 0x00;
 			}
 		}
 	}
