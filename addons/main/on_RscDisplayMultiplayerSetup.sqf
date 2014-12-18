@@ -7,7 +7,7 @@ if(!(uiNamespace getVariable ["JNET_mpSetupInit", false])) then {
 	
 	["onLoad",_this,"RscDisplayMultiplayerSetup",'GUI'] call compile preprocessfilelinenumbers "A3\ui_f\scripts\initDisplay.sqf";
 };
-diag_log text "HI MP SETUP SCREEN!";
+
 _res = "jnet" callExtension "setStage:on_RscDisplayMultiplayerSetup";
 call compile preprocessfilelinenumbers "\x\jnet\addons\main\setClientInfo.sqf";
 
