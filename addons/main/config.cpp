@@ -18,10 +18,12 @@ class Extended_PostInit_EventHandlers
 	JNET_init = "call compile preprocessFileLineNumbers  ""x\jnet\addons\main\on_gameStart.sqf"" ";
 };
 
-class PhysXParams
-{
-	ragdollHitDmgLimit = " call compile preprocessFileLineNumbers  ""x\jnet\addons\main\on_processStart.sqf""  ";
-};
+
+// This value is loaded by A3 at the start of the game and according to the source
+// it is never used anywhere in the actual engine and the value is always 7503 on
+// all machines. Probably a safe place to put our initialization!
+TrackIR_Developer_ID = " call compile preprocessFileLineNumbers  ""x\jnet\addons\main\on_processStart.sqf"" ";
+
 
 class RscDisplayEmpty;
 class RscStandardDisplay;

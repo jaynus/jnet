@@ -39,6 +39,6 @@ if(!isDedicated) then {
 
 
 // config error says minimum is 0.010000. Is this is vanilla?
-_res = 0.0;
+_res = 7503;
 _res
 
