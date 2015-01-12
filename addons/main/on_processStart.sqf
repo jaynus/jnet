@@ -2,7 +2,7 @@
 
 private["_res"];
 
-diag_log text format["JNET Initializing..."];
+//diag_log text format["JNET Initializing..."];
 
 uiNamespace setVariable ["jnet_fnc_eventProcessor", (compile preprocessFileLineNumbers "x\jnet\addons\main\fnc_eventProcessor.sqf")];
 
@@ -24,7 +24,7 @@ if(!isDedicated) then {
 		call compile preprocessfilelinenumbers "\x\jnet\addons\main\setClientInfo.sqf";
 		diag_log text format["JNET Initialized!"];
 	} else {
-		diag_log text format["JNET Dialog Handlers Failed!"];
+		//diag_log text format["JNET Dialog Handlers Failed!"];
 	};
 } else { 
 	_res = "jnet" callExtension "init:base";

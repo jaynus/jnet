@@ -104,7 +104,7 @@ namespace jnet {
 					LOG(INFO) << "Synchronizing with [" << conn->name << " @ " << conn->id << "]";
 
 					text_message_p msg_config(text_message::formatNewMessage(
-						"JNET server_settings:%1", 
+						"JNET server_settings", 
 						const_cast<char *>(settings.c_str())
 					));
 
@@ -161,13 +161,11 @@ namespace jnet {
 
 		LOG(INFO) << "Configuration File Loaded";
 		
-		str << "[jvon_settings]";
-		str << "jvon_launcher = " << config().GetInteger("", "jvon_launcher", 0) << ";\n";
-		str << "jvon_server_address = \"" << config().Get("", "jvon_server_address", "") << "\";\n";
-		str << "jvon_password = \"" << config().Get("", "jvon_password", "") << "\";\n";
+		str << "[jvon_settings]\n";
+		str << "jvon_enabled = " << config().GetInteger("", "jvon_enabled", 0) << ";\n";
 		str << "jvon_required = " << config().GetInteger("", "jvon_required", 0) << ";\n";
-		str << "jvon_required_timeout = " << config().GetInteger("", "jvon_required_timeout", 0) << ";\n";
-		str << "jvon_extended_config = " << config().Get("", "jvon_extended_config", "") << ";\n";
+		str << "jvon_server_address = \"" << config().Get("", "jvon_server_address", "") << "\";\n";
+		str << "jvon_password = \"" << config().Get("", "jvon_password", "") << "\";\n";	
 
 		LOG(DEBUG) << "Sending: " << str.str();
 
@@ -198,7 +196,7 @@ namespace jnet {
 				std::replace(par_str.begin(), par_str.end(), '\r', ' ');
 				std::replace(par_str.begin(), par_str.end(), '\n', ' ');
 
-				cmd_line = par_str;
+				cmd_line += par_str;
 			}
 		}
 		
