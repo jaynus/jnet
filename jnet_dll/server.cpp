@@ -207,13 +207,25 @@ namespace jnet {
 			if (cmd_line.find_first_of("-config") != std::string::npos) {
 				cfg_name = cmd_line.substr(cmd_line.find("-config") + 8, cmd_line.size() - (cmd_line.find("-config") + 8));
 				
-				size_t end_index = cfg_name.find_first_of(" ");
-				if (cfg_name.find_first_of(" ") == std::string::npos)
-					end_index = cfg_name.size();
-				cfg_name.resize(end_index);
+				if (cfg_name[0] == '\"') {
+					cfg_name = cmd_line.substr(cmd_line.find("-config") + 9, cmd_line.size() - (cmd_line.find("-config") + 9));
+					// it started quoted, parse for quotes instead of spaces
+					size_t end_index = cfg_name.find_first_of("\"");
+					if (cfg_name.find_first_of("\"") == std::string::npos)
+						end_index = cfg_name.size();
 
+					cfg_name.resize(end_index);
+					cfg_name.erase(std::remove(cfg_name.begin(), cfg_name.end(), '\"'), cfg_name.end());
+
+				}
+				else {
+					size_t end_index = cfg_name.find_first_of(" ");
+					if (cfg_name.find_first_of(" ") == std::string::npos)
+						end_index = cfg_name.size();
+					cfg_name.resize(end_index);
+				}
 			} else if (cmd_line.find_first_of("-cfg") != std::string::npos) {
-				cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 8, cmd_line.size() - (cmd_line.find("-cfg") + 8));
+				cfg_name = cmd_line.substr(cmd_line.find("-cfg") + 5, cmd_line.size() - (cmd_line.find("-cfg") + 5));
 				size_t end_index = cfg_name.find_first_of(" ");
 				if (cfg_name.find_first_of(" ") == std::string::npos)
 					end_index = cfg_name.size();
