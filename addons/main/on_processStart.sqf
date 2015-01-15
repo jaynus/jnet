@@ -36,7 +36,7 @@ if(!isDedicated) then {
 	diag_log text format["JNET Initialized!"];
 };
 
-
+uiNamespace setVariable["jnet_procstart_ran", true];
 
 // config error says minimum is 0.010000. Is this is vanilla?
 _res = 7503;
