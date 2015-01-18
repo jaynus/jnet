@@ -4,6 +4,9 @@ private["_res"];
 
 //diag_log text format["JNET Initializing..."];
 
+_started = uiNamespace getVariable ["jnet_procstart_ran", false];
+if(_started) exitWith {};
+
 uiNamespace setVariable ["jnet_fnc_eventProcessor", (compile preprocessFileLineNumbers "x\jnet\addons\main\fnc_eventProcessor.sqf")];
 
 if(!isDedicated) then {
@@ -39,6 +42,3 @@ if(!isDedicated) then {
 uiNamespace setVariable["jnet_procstart_ran", true];
 
 // config error says minimum is 0.010000. Is this is vanilla?
-_res = 7503;
-_res
-
