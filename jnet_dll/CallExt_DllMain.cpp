@@ -47,6 +47,7 @@ void release() {
 				load();
 				break;
 			case DLL_PROCESS_DETACH:
+				release();
 				destroy();
 				break;
 			case DLL_THREAD_ATTACH:
