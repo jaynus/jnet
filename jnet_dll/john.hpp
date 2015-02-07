@@ -6,6 +6,7 @@
 #include <mutex>
 #include <memory>
 #include <map>
+#include <atomic>
 
 #include "connection.hpp"
 #include "hooker.hpp"

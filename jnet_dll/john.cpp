@@ -377,12 +377,13 @@ namespace jnet {
 	void john::release() {
 		LOG(DEBUG) << "enter";
 		_stopping = true;
+		sleep(2000);
 		_hooker.release();
 
 		reset();
 
-		if (_worker.joinable())
-			_worker.join();
+		//if (_worker.joinable())
+		//	_worker.join();
 	}
 
 	john::john() :
