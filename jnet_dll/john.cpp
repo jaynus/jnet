@@ -287,7 +287,9 @@ namespace jnet {
 	}
 
 	int john::send(uint32_t s, char *data, int length, struct sockaddr *to, int tolen) {
-
+#ifdef _DEBUG_VANILLA_NETWORK_TRAFFIC
+		LOG(DEBUG) << "Recv(" << host_string(to) << "," << tolen << ")";
+#endif
 		track(s, data, length, to, tolen, 1);
 
 		return -1;
@@ -295,6 +297,10 @@ namespace jnet {
 	int john::recv(uint32_t s, char *data, int length, struct sockaddr *from, int fromlen) {
 		int retVal;
 		std::string cur_host;
+
+#ifdef _DEBUG_VANILLA_NETWORK_TRAFFIC
+		LOG(DEBUG) << "Recv(" << host_string(from) << "," << fromlen << ")";
+#endif
 
 		if (state().status == e_status_t::DISABLED)
 			return -1;

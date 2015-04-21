@@ -13,6 +13,8 @@
 
 #include "i_engine.hpp"
 
+//#define _DEBUG_VANILLA_NETWORK_TRAFFIC
+
 namespace jnet {
 	enum e_status_t {
 		NOT_CONNECTED			= 0,
